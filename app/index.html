@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FoodieHub</title>
+<style>
+  /* ===== Design tokens ===== */
+  :root {
+    --bg: #fffaf5;
+    --card: #ffffff;
+    --ink: #29221e;
+    --muted: #75685f;
+    --brand: #d9480f;
+    --brand-d: #b83a0a;
+    --brand-soft: #fff1e8;
+    --line: #eadfd3;
+    --line-strong: #d9cbbf;
+    --ok: #2f9e44;
+    --bad: #c92a2a;
+    --radius: 14px;
+    --shadow: 0 4px 16px rgba(65, 39, 20, .06);
+  }
+
+  /* ===== Base ===== */
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  h2 { margin: 0 0 16px; font-size: 26px; }
+  h3 { margin: 28px 0 12px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  button, input, select { font: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+    outline: 3px solid rgba(217, 72, 15, .25);
+    outline-offset: 2px;
+  }
+  .muted { color: var(--muted); font-size: 14px; }
+
+  /* ===== Header ===== */
+  header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+  .bar { max-width: 1200px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .logo { font-weight: 800; font-size: 21px; color: var(--brand); margin-right: auto; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav button {
+    background: none; border: 1px solid transparent; padding: 8px 14px; min-height: 38px;
+    border-radius: 9px; cursor: pointer; color: var(--muted); font-weight: 600;
+  }
+  nav button:hover { background: var(--brand-soft); color: var(--brand-d); }
+  nav button.on { background: var(--brand-soft); color: var(--brand-d); border-color: #f2d2c2; }
+  .who { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+
+  /* ===== Layout ===== */
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 70px; }
+
+  /* ===== Buttons ===== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 40px; padding: 9px 16px; border: 1px solid transparent; border-radius: 9px;
+    background: var(--brand); color: #fff; font-weight: 650; line-height: 1.25; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .1s;
+  }
+  .btn:hover { background: var(--brand-d); }
+  .btn:active { transform: translateY(1px); }
+  .btn.sec { background: #fff; color: var(--ink); border-color: var(--line-strong); }
+  .btn.sec:hover { background: var(--brand-soft); border-color: #e8b49b; color: var(--brand-d); }
+  .btn.bad { background: var(--bad); }
+  .btn.bad:hover { background: #a61e1e; }
+  .btn.sm { min-height: 34px; padding: 6px 12px; font-size: 14px; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  /* ===== Form controls ===== */
+  input, select {
+    display: block; width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px;
+    border: 1px solid var(--line-strong); border-radius: 9px; background: #fff; color: var(--ink);
+  }
+  input:focus, select:focus { border-color: var(--brand); }
+  input[type="checkbox"] { width: 20px; min-height: 20px; height: 20px; accent-color: var(--brand); }
+  input[type="file"] { padding: 8px; }
+  label { font-size: 14px; font-weight: 600; }
+  .form { display: grid; gap: 12px; }
+
+  /* ===== Cards ===== */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .page-head h2 { margin: 0; }
+  .actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .actions select { width: auto; min-height: 40px; }
+  .stack > * + * { margin-top: 14px; }
+
+  /* ===== Menu grid: 3 columns ===== */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .dish { padding: 0; overflow: hidden; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
+  .dish:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(65, 39, 20, .12); }
+  .dish-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+  .dish-cat { font-size: 12px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .05em; }
+  .dish h4 { margin: 4px 0 6px; font-size: 18px; line-height: 1.3; }
+  .dish p { margin: 0 0 16px; color: var(--muted); font-size: 14px; flex: 1; overflow-wrap: anywhere; }
+  .price { font-weight: 800; font-size: 18px; }
+
+  /* Photos (emoji placeholder sits behind the image, so a broken link falls back gracefully) */
+  .photo { position: relative; background: #f5eee7; display: grid; place-items: center; font-size: 34px; color: #b5a698; overflow: hidden; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .photo.big { aspect-ratio: 4 / 3; }
+  .photo.thumb { width: 60px; height: 60px; flex: 0 0 60px; border-radius: 10px; font-size: 22px; }
+  .photo.mini { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 8px; font-size: 16px; }
+  .preview-photo { display: none; width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+
+  /* ===== Cart ===== */
+  .cart-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .cart-line:first-child { padding-top: 0; }
+  .cart-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .qty { display: flex; align-items: center; gap: 8px; }
+  .qty button {
+    width: 34px; height: 34px; padding: 0; border: 1px solid var(--line-strong); border-radius: 8px;
+    background: #fff; color: var(--ink); font-size: 17px; cursor: pointer;
+  }
+  .qty button:hover { background: var(--brand-soft); border-color: #e8b49b; color: var(--brand-d); }
+  .line-total { min-width: 74px; text-align: right; font-weight: 700; }
+  .checkout { max-width: 440px; }
+
+  /* ===== Orders ===== */
+  .order { margin-bottom: 14px; }
+  .order-items { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 10px 0; font-size: 14px; }
+  .order-item { display: inline-flex; align-items: center; gap: 8px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: #eee; }
+  .badge.PLACED, .badge.CONFIRMED, .badge.PREPARING, .badge.PENDING { background: #fff3bf; color: #8a6d00; }
+  .badge.OUT_FOR_DELIVERY { background: #d0ebff; color: #1864ab; }
+  .badge.DELIVERED, .badge.PAID { background: #d3f9d8; color: #1b6e2a; }
+  .badge.CANCELLED, .badge.REFUNDED { background: #ffe3e3; color: #a61e1e; }
+  .steps { display: flex; gap: 4px; margin: 12px 0 6px; }
+  .steps span { flex: 1; height: 6px; border-radius: 4px; background: var(--line); }
+  .steps span.done { background: var(--ok); }
+
+  /* ===== Inventory table ===== */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  th { background: #fbf4ea; color: var(--muted); white-space: nowrap; }
+  td input[type="number"] { width: 90px; min-height: 38px; }
+  .cell-item { display: flex; align-items: center; gap: 10px; min-width: 170px; }
+  .form-narrow { max-width: 480px; }
+
+  /* ===== Login / Register ===== */
+  .auth-wrap { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
+  .auth-hero {
+    background: linear-gradient(145deg, #d9480f 0%, #f08c3c 100%);
+    color: #fff; padding: 56px; display: flex; flex-direction: column; justify-content: center; gap: 22px;
+  }
+  .auth-hero .big-logo { font-size: 30px; font-weight: 800; }
+  .auth-hero h1 { margin: 0; font-size: 40px; line-height: 1.15; }
+  .auth-hero p { margin: 0; font-size: 17px; opacity: .92; max-width: 420px; }
+  .auth-hero ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-weight: 600; }
+  .auth-side { display: grid; place-items: center; padding: 32px 20px; }
+  .auth-card { width: 100%; max-width: 420px; }
+  .auth-card h2 { font-size: 28px; margin-bottom: 6px; }
+  .auth-card .sub { color: var(--muted); margin: 0 0 24px; }
+  .auth-card .btn { width: 100%; min-height: 46px; }
+  .auth-card .switch { text-align: center; margin: 18px 0 0; color: var(--muted); font-size: 14px; }
+  .auth-card .switch a { color: var(--brand-d); font-weight: 700; text-decoration: none; cursor: pointer; }
+  .auth-card .switch a:hover { text-decoration: underline; }
+  .mobile-logo { display: none; font-size: 24px; font-weight: 800; color: var(--brand); margin-bottom: 18px; }
+
+  /* ===== Toast ===== */
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display: none; z-index: 20;
+    background: #2b2420; color: #fff; padding: 11px 20px; border-radius: 10px; text-align: center;
+    max-width: calc(100% - 32px); box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+  }
+  #toast.err { background: var(--bad); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 1000px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .auth-wrap { grid-template-columns: 1fr; }
+    .auth-hero { display: none; }
+    .mobile-logo { display: block; }
+  }
+  @media (max-width: 600px) {
+    .bar { padding: 10px 14px; }
+    .logo { width: 100%; }
+    nav { width: 100%; }
+    nav button { flex: 1 1 auto; }
+    main { padding: 20px 14px 50px; }
+    .grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .who { width: 100%; justify-content: space-between; }
+    .cart-line { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header id="header"><div class="bar">
+  <div class="logo">🍽️ FoodieHub</div>
+  <nav id="nav"></nav>
+  <div class="who" id="who"></div>
+</div></header>
+<main id="app"></main>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let token = localStorage.getItem('token');
+let user = JSON.parse(localStorage.getItem('user') || 'null');
+let tab = user ? (user.role === 'admin' ? 'aorders' : 'menu') : 'auth';
+let authMode = 'login';
+let category = 'All';
+let categories = [];
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => '₹' + Number(n).toFixed(2).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+
+/* Photo with emoji fallback (shows 🍽️ if there is no image or the link is broken) */
+const photo = (url, size, name) =>
+  `<div class="photo ${size}">🍽️${url ? `<img src="${esc(url)}" alt="${esc(name || '')}" loading="lazy" onerror="this.remove()">` : ''}</div>`;
+
+function toast(msg, isErr) {
+  const t = $('#toast');
+  t.textContent = msg; t.className = isErr ? 'err' : ''; t.style.display = 'block';
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 3400);
+}
+
+async function api(path, method = 'GET', body) {
+  const res = await fetch('/api' + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && token) logout(true);
+  if (!res.ok) {
+    let msg = data.error || 'Request failed';
+    if (data.problems) msg += ': ' + data.problems.map(p => (p.name || 'Item ' + p.menu_item_id) + ' - ' + p.reason).join('; ');
+    throw new Error(msg);
+  }
+  return data;
+}
+const run = async fn => { try { await fn(); } catch (e) { toast(e.message, true); } };
+
+function setAuth(data) {
+  token = data.access_token; user = data.user;
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(user));
+  tab = user.role === 'admin' ? 'aorders' : 'menu';
+}
+function logout(expired) {
+  token = null; user = null;
+  localStorage.removeItem('token'); localStorage.removeItem('user');
+  tab = 'auth'; authMode = 'login';
+  if (expired) toast('Session expired, please log in again', true);
+  render();
+}
+function go(t) { tab = t; render(); }
+
+/* ---------- shell / routing ---------- */
+function renderNav() {
+  $('#header').style.display = user ? '' : 'none';   // login page has no header
+  if (!user) return;
+  const tabs = [['menu', 'Menu']];
+  if (user.role === 'customer') tabs.push(['cart', 'Cart'], ['orders', 'My Orders']);
+  if (user.role === 'admin') tabs.push(['aorders', 'Admin: Orders'], ['ainv', 'Admin: Inventory']);
+  $('#nav').innerHTML = tabs.map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" onclick="go('${k}')">${l}</button>`).join('');
+  $('#who').innerHTML = `<span>${esc(user.name)} (${user.role})</span><button class="btn sec sm" onclick="logout()">Logout</button>`;
+}
+
+async function render() {
+  const app = $('#app');
+  if (!user) tab = 'auth';
+  renderNav();
+  // main padding/width is only for the logged-in pages
+  app.style.cssText = user ? '' : 'max-width:none;padding:0';
+  try {
+    if (tab === 'auth') return renderAuth(app);
+    if (tab === 'menu') return await renderMenu(app);
+    if (tab === 'cart') return await renderCart(app);
+    if (tab === 'orders') return await renderOrders(app);
+    if (tab === 'aorders') return await renderAdminOrders(app);
+    if (tab === 'ainv') return await renderInventory(app);
+  } catch (e) { app.innerHTML = `<p class="muted">Could not load: ${esc(e.message)}</p>`; }
+}
+
+/* ---------- login / register ---------- */
+function renderAuth(app) {
+  const isLogin = authMode === 'login';
+  app.innerHTML = `
+  <div class="auth-wrap">
+    <div class="auth-hero">
+      <div class="big-logo">🍽️ FoodieHub</div>
+      <h1>Hungry? Your favourite food is a few taps away.</h1>
+      <p>Browse the menu, build your cart and track your order from kitchen to doorstep.</p>
+      <ul><li>✔ Fresh dishes with real photos</li><li>✔ Cash on delivery or online payment</li><li>✔ Live order tracking</li></ul>
+    </div>
+    <div class="auth-side">
+      <div class="auth-card">
+        <div class="mobile-logo">🍽️ FoodieHub</div>
+        <h2>${isLogin ? 'Welcome back!' : 'Create your account'}</h2>
+        <p class="sub">${isLogin ? 'Log in to order your favourite food.' : 'Sign up to start ordering. It takes less than a minute.'}</p>
+        <form class="form" onsubmit="return submitAuth(event)">
+          ${isLogin ? '' : `<input id="a-name" placeholder="Full name" autocomplete="name" required>`}
+          <input id="a-email" type="email" placeholder="Email address" autocomplete="email" required>
+          <input id="a-pass" type="password" minlength="${isLogin ? 1 : 6}" placeholder="${isLogin ? 'Password' : 'Password (min 6 characters)'}"
+                 autocomplete="${isLogin ? 'current-password' : 'new-password'}" required>
+          <button class="btn" type="submit">${isLogin ? 'Login' : 'Create account'}</button>
+        </form>
+        <p class="switch">${isLogin
+          ? `New here? <a onclick="switchAuth('register')">Create an account</a>`
+          : `Already registered? <a onclick="switchAuth('login')">Log in</a>`}</p>
+      </div>
+    </div>
+  </div>`;
+  const first = $(isLogin ? '#a-email' : '#a-name'); if (first) first.focus();
+}
+function switchAuth(mode) { authMode = mode; renderAuth($('#app')); }
+
+function submitAuth(ev) {
+  ev.preventDefault();
+  run(async () => {
+    const email = $('#a-email').value.trim(), password = $('#a-pass').value;
+    if (authMode === 'register') {
+      await api('/auth/register', 'POST', { name: $('#a-name').value.trim(), email, password });
+    }
+    const d = await api('/auth/login', 'POST', { email, password });
+    setAuth(d);
+    toast(authMode === 'register' ? 'Account created. Welcome, ' + d.user.name + '!' : 'Welcome, ' + d.user.name);
+    render();
+  });
+  return false;
+}
+
+/* ---------- menu ---------- */
+async function renderMenu(app) {
+  const d = await api('/menu');
+  categories = ['All', ...new Set(d.items.map(i => i.category))];
+  if (!categories.includes(category)) category = 'All';
+  const items = d.items.filter(i => category === 'All' || i.category === category);
+  app.innerHTML = `<h2>Menu</h2>
+    <div class="chips">${categories.map((c, idx) =>
+      `<button class="btn ${c === category ? '' : 'sec'} sm" onclick="setCategory(${idx})">${esc(c)}</button>`).join('')}</div>
+    <div class="grid">${items.map(i => `
+      <div class="card dish">
+        ${photo(i.image_url, 'big', i.name)}
+        <div class="dish-body">
+          <span class="dish-cat">${esc(i.category)}</span>
+          <h4>${esc(i.name)}</h4>
+          <p>${esc(i.description)}</p>
+          <div class="row"><span class="price">${money(i.price)}</span>
+            ${i.in_stock
+              ? (user.role === 'customer' ? `<button class="btn" onclick="addToCart(${i.id})">Add to cart</button>` : '')
+              : `<span class="badge CANCELLED">Sold out</span>`}
+          </div>
+        </div>
+      </div>`).join('') || '<p class="muted">Nothing here yet.</p>'}</div>`;
+}
+function setCategory(idx) { category = categories[idx]; render(); }
+const addToCart = id => run(async () => {
+  await api('/cart/items', 'POST', { menu_item_id: id, quantity: 1 });
+  toast('Added to cart');
+});
+
+/* ---------- cart ---------- */
+async function renderCart(app) {
+  const d = await api('/cart');
+  if (!d.items.length) {
+    app.innerHTML = `<h2>Your cart</h2><div class="card"><p class="muted" style="margin:0 0 14px">Your cart is empty. Add something tasty from the menu.</p>
+      <button class="btn" onclick="go('menu')">Browse menu</button></div>`;
+    return;
+  }
+  app.innerHTML = `<h2>Your cart</h2>
+    <div class="card">
+      ${d.items.map(i => `
+      <div class="cart-line">
+        <div class="cart-info">${photo(i.image_url, 'thumb', i.name)}
+          <div><b>${esc(i.name)}</b><br><span class="muted">${money(i.price)} each</span>
+          ${i.in_stock ? '' : ' <span class="badge CANCELLED">Not enough stock</span>'}</div></div>
+        <div class="qty">
+          <button onclick="setQty(${i.menu_item_id},${i.quantity - 1})" aria-label="Decrease">−</button>
+          <b>${i.quantity}</b>
+          <button onclick="setQty(${i.menu_item_id},${i.quantity + 1})" aria-label="Increase">+</button>
+          <span class="line-total">${money(i.line_total)}</span>
+          <button onclick="removeItem(${i.menu_item_id})" title="Remove" aria-label="Remove">✕</button>
+        </div>
+      </div>`).join('')}
+      <div class="row" style="padding-top:14px"><b>Total</b><b class="price">${money(d.total)}</b></div>
+    </div>
+    <h3>Checkout</h3>
+    <div class="card form checkout">
+      <input id="addr" placeholder="Delivery address">
+      <select id="pm"><option value="COD">Cash on Delivery</option><option value="ONLINE">Online payment</option></select>
+      <button class="btn" onclick="checkout()">Place order</button>
+    </div>`;
+}
+const setQty = (id, q) => run(async () => {
+  if (q < 1) return removeItem(id);
+  await api('/cart/items/' + id, 'PUT', { quantity: q }); render();
+});
+const removeItem = id => run(async () => { await api('/cart/items/' + id, 'DELETE'); render(); });
+const checkout = () => run(async () => {
+  const d = await api('/orders', 'POST', { delivery_address: $('#addr').value, payment_method: $('#pm').value });
+  toast(d.message); go('orders');
+});
+
+/* ---------- customer orders ---------- */
+const STEPS = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+const progress = s => s === 'CANCELLED' ? '' :
+  `<div class="steps">${STEPS.map((x, i) => `<span class="${i <= STEPS.indexOf(s) ? 'done' : ''}"></span>`).join('')}</div>`;
+const orderItems = o => `<div class="order-items">${o.items.map(i =>
+  `<span class="order-item">${photo(i.image_url, 'mini', i.name)}<span>${esc(i.name)} × ${i.quantity}</span></span>`).join('')}</div>`;
+
+async function renderOrders(app) {
+  const d = await api('/orders');
+  app.innerHTML = `<div class="page-head"><h2>My orders</h2><button class="btn sec" onclick="render()">↻ Refresh status</button></div>` +
+    (d.orders.map(o => `
+      <div class="card order">
+        <div class="row"><b>Order #${o.id}</b>
+          <span><span class="badge ${o.status}">${o.status.replace(/_/g, ' ')}</span>
+          <span class="badge ${o.payment_status}">${o.payment_method} · ${o.payment_status}</span></span></div>
+        ${progress(o.status)}
+        ${orderItems(o)}
+        <div class="muted">📍 ${esc(o.delivery_address)} · ${new Date(o.created_at).toLocaleString()}</div>
+        <div class="row" style="margin-top:12px"><b class="price">${money(o.total_amount)}</b>
+          <div class="actions">
+            ${o.payment_method === 'ONLINE' && o.payment_status === 'PENDING' && o.status !== 'CANCELLED' ? `<button class="btn" onclick="payOrder(${o.id})">Pay now</button>` : ''}
+            ${['PLACED', 'CONFIRMED'].includes(o.status) ? `<button class="btn bad" onclick="cancelOrder(${o.id})">Cancel</button>` : ''}
+          </div></div>
+      </div>`).join('') || '<div class="card"><p class="muted" style="margin:0">No orders yet.</p></div>');
+}
+const payOrder = id => run(async () => { const d = await api(`/orders/${id}/pay`, 'POST'); toast(d.message); render(); });
+const cancelOrder = id => run(async () => {
+  if (!confirm('Cancel this order?')) return;
+  await api(`/orders/${id}/cancel`, 'POST'); toast('Order cancelled'); render();
+});
+
+/* ---------- admin: orders ---------- */
+const NEXT = { PLACED: ['CONFIRMED', 'CANCELLED'], CONFIRMED: ['PREPARING', 'CANCELLED'], PREPARING: ['OUT_FOR_DELIVERY', 'CANCELLED'], OUT_FOR_DELIVERY: ['DELIVERED'], DELIVERED: [], CANCELLED: [] };
+
+async function renderAdminOrders(app) {
+  const d = await api('/admin/orders');
+  app.innerHTML = `<div class="page-head"><h2>All orders</h2><button class="btn sec" onclick="render()">↻ Refresh</button></div>` +
+    (d.orders.map(o => `
+      <div class="card order">
+        <div class="row"><b>Order #${o.id} · ${esc(o.customer.name)}</b>
+          <span><span class="badge ${o.status}">${o.status.replace(/_/g, ' ')}</span>
+          <span class="badge ${o.payment_status}">${o.payment_method} · ${o.payment_status}</span></span></div>
+        ${progress(o.status)}
+        ${orderItems(o)}
+        <div class="muted">📍 ${esc(o.delivery_address)} · <b>${money(o.total_amount)}</b></div>
+        ${NEXT[o.status].length ? `<div class="actions" style="margin-top:12px"><select id="st${o.id}">${NEXT[o.status].map(s => `<option>${s}</option>`).join('')}</select>
+          <button class="btn" onclick="setStatus(${o.id})">Update status</button></div>` : ''}
+      </div>`).join('') || '<div class="card"><p class="muted" style="margin:0">No orders yet.</p></div>');
+}
+const setStatus = id => run(async () => {
+  await api(`/admin/orders/${id}/status`, 'PUT', { status: $('#st' + id).value }); toast('Status updated'); render();
+});
+
+/* ---------- admin: inventory ---------- */
+async function renderInventory(app) {
+  const d = await api('/admin/inventory');
+  app.innerHTML = `<h2>Inventory</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Photo / Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Visible</th><th></th></tr>
+      ${d.items.map(i => `<tr>
+        <td><div class="cell-item">${photo(i.image_url, 'mini', i.name)}<span>${esc(i.name)}</span></div></td>
+        <td>${esc(i.category)}</td><td>${money(i.price)}</td>
+        <td><input type="number" min="0" id="s${i.id}" value="${i.stock}"></td>
+        <td><input type="checkbox" id="v${i.id}" ${i.is_available ? 'checked' : ''}></td>
+        <td><button class="btn sm" onclick="saveInv(${i.id})">Save</button></td></tr>`).join('')}
+    </table></div>
+
+    <h3>Manage dish photos</h3>
+    <div class="card form form-narrow">
+      <p class="muted" style="margin:0">Choose a dish, then pick a photo from your device (or take one with the camera on a phone).</p>
+      <select id="photoItem"><option value="">Choose a dish</option>${d.items.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('')}</select>
+      <input id="dishPhoto" type="file" accept="image/*" onchange="previewDishPhoto(event)">
+      <img id="photoPreview" class="preview-photo" alt="Photo preview">
+      <button class="btn" onclick="uploadDishPhoto()">Upload photo</button>
+    </div>
+
+    <h3>Add new dish</h3>
+    <div class="card form form-narrow">
+      <input id="nn" placeholder="Name"><input id="nd" placeholder="Description">
+      <input id="nc" placeholder="Category (e.g. Pizza)"><input id="np" type="number" min="0" step="0.01" placeholder="Price">
+      <input id="ns" type="number" min="0" placeholder="Stock">
+      <label for="newDishPhoto">Food photo (optional)</label>
+      <input id="newDishPhoto" type="file" accept="image/*" onchange="previewNewDishPhoto(event)">
+      <img id="newPhotoPreview" class="preview-photo" alt="New dish photo preview">
+      <button class="btn" onclick="addDish()">Add to menu</button>
+    </div>`;
+}
+const saveInv = id => run(async () => {
+  await api('/admin/inventory/' + id, 'PUT', { stock: parseInt($('#s' + id).value, 10), is_available: $('#v' + id).checked });
+  toast('Saved'); render();
+});
+
+function showPreview(input, previewId) {
+  const file = input.files && input.files[0], img = document.getElementById(previewId);
+  if (!file) { img.style.display = 'none'; img.removeAttribute('src'); return; }
+  if (!file.type.startsWith('image/')) { toast('Please choose an image file', true); input.value = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { toast('Choose an image smaller than 5 MB', true); input.value = ''; return; }
+  img.src = URL.createObjectURL(file); img.style.display = 'block';
+}
+const previewDishPhoto = e => showPreview(e.target, 'photoPreview');
+const previewNewDishPhoto = e => showPreview(e.target, 'newPhotoPreview');
+
+async function uploadPhotoForItem(id, file) {
+  const form = new FormData(); form.append('image', file);
+  const res = await fetch('/api/menu/' + id + '/image', { method: 'POST', headers: token ? { Authorization: 'Bearer ' + token } : {}, body: form });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Image upload failed');
+  return data;
+}
+const uploadDishPhoto = () => run(async () => {
+  const id = $('#photoItem').value, file = $('#dishPhoto').files[0];
+  if (!id) throw new Error('Choose a dish first');
+  if (!file) throw new Error('Choose a photo first');
+  await uploadPhotoForItem(id, file); toast('Photo saved'); render();
+});
+const addDish = () => run(async () => {
+  const d = await api('/menu', 'POST', {
+    name: $('#nn').value, description: $('#nd').value, category: $('#nc').value || 'General',
+    price: parseFloat($('#np').value), stock: parseInt($('#ns').value || '0', 10)
+  });
+  const file = $('#newDishPhoto').files[0];
+  if (file) await uploadPhotoForItem(d.item.id, file);
+  toast('Dish added'); render();
+});
+
+render();
+</script>
+</body>
+</html>
